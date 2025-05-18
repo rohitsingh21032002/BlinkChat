@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BlinkChat</title>
   <style>
     body {
@@ -12,9 +13,16 @@
       transition: background-color 0.3s, color 0.3s;
     }
 
+    h2 {
+      text-align: center;
+      padding: 10px;
+      margin: 0;
+    }
+
     #container {
       display: flex;
-      height: 90vh;
+      flex-direction: row;
+      height: calc(100vh - 100px);
       border: 1px solid #ccc;
       background-color: #f0f0f0;
       transition: background-color 0.3s;
@@ -46,10 +54,11 @@
       padding: 8px 12px;
       margin-bottom: 8px;
       border-radius: 8px;
-      max-width: 60%;
+      max-width: 90%;
       background-color: #dcf8c6;
       align-self: flex-start;
       transition: background-color 0.3s, color 0.3s;
+      word-wrap: break-word;
     }
 
     .system-message {
@@ -81,8 +90,13 @@
 
     #sendBtn {
       margin-left: 8px;
-      padding: 10px;
+      padding: 10px 15px;
       cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #075e54;
+      color: white;
+      font-weight: bold;
     }
 
     #users {
@@ -103,7 +117,32 @@
       transition: color 0.3s;
     }
 
-    /* Dark Mode Styles */
+    #darkModeToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #075e54;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      z-index: 1000;
+    }
+
+    #darkModeToggle:hover {
+      background: #128c7e;
+    }
+
+    label {
+      padding: 10px;
+      display: block;
+      text-align: center;
+    }
+
+    /* Dark Mode */
     body.dark-mode {
       background-color: #121212;
       color: #ddd;
@@ -148,33 +187,41 @@
       color: #aaa;
     }
 
-    /* Dark mode toggle button */
-    #darkModeToggle {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #075e54;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.3s;
-      z-index: 1000;
-    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      #container {
+        flex-direction: column;
+      }
 
-    #darkModeToggle:hover {
-      background: #128c7e;
+      #users {
+        width: 100%;
+        order: -1;
+        border-left: none;
+        border-top: 1px solid #ccc;
+      }
+
+      #messages li {
+        max-width: 100%;
+      }
+
+      #inputArea {
+        flex-direction: column;
+      }
+
+      #sendBtn {
+        margin-left: 0;
+        margin-top: 8px;
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center;">💬 BlinkChat</h2>
+  <h2>💬 BlinkChat</h2>
 
   <button id="darkModeToggle">Dark Mode</button>
 
-  <label style="padding: 10px;">Your name: <input id="username" placeholder="Enter your name" /></label>
+  <label>Your name: <input id="username" placeholder="Enter your name" /></label>
 
   <div id="container">
     <div id="chat">
@@ -192,7 +239,6 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script>
     const socket = io();
@@ -270,7 +316,6 @@
       });
     });
 
-    // Dark Mode toggle logic
     darkModeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
       darkModeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
