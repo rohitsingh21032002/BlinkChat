@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,6 +49,13 @@
       border-radius: 5px;
       transition: background-color 0.3s, color 0.3s;
       color: #000;
+    }
+
+    #userList {
+      list-style: none;
+      /* ✅ Remove bullet points */
+      padding: 0;
+      margin: 0;
     }
 
     #messages li {
@@ -216,6 +224,7 @@
     }
   </style>
 </head>
+
 <body>
   <h2>💬 BlinkChat</h2>
 
@@ -311,7 +320,17 @@
       userList.innerHTML = "";
       users.forEach((u) => {
         const li = document.createElement("li");
-        li.textContent = u;
+        const avatar = document.createElement("img");
+        avatar.src = generateAvatarUrl(u); // Use avatar generator
+        avatar.alt = u;
+        avatar.style.width = "24px";
+        avatar.style.height = "24px";
+        avatar.style.borderRadius = "50%";
+        avatar.style.marginRight = "8px";
+        avatar.style.verticalAlign = "middle";
+
+        li.appendChild(avatar);
+        li.appendChild(document.createTextNode(u));
         userList.appendChild(li);
       });
     });
@@ -320,6 +339,10 @@
       document.body.classList.toggle("dark-mode");
       darkModeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
     });
+    function generateAvatarUrl(name) {
+      return `https://api.dicebear.com/6.x/adventurer/svg?seed=${encodeURIComponent(name)}`;
+    }
   </script>
 </body>
+
 </html>
