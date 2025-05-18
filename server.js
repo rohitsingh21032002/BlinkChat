@@ -5,6 +5,7 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+const port = process.env.PORT || 3000;
 
 app.use(express.static("public")); // assuming index.html is in /public
 
@@ -46,6 +47,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server listening on http://localhost:3000");
+server.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
