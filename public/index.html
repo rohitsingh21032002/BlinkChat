@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BlinkChat</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #ece5dd;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #container {
+      display: flex;
+      height: 90vh;
+      border: 1px solid #ccc;
+      background-color: #f0f0f0;
+      transition: background-color 0.3s;
+    }
+
+    #chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      overflow: hidden;
+      background-color: #f0f0f0;
+      transition: background-color 0.3s;
+    }
+
+    #messages {
+      flex: 1;
+      list-style: none;
+      padding: 10px;
+      margin: 0;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 5px;
+      transition: background-color 0.3s, color 0.3s;
+      color: #000;
+    }
+
+    #messages li {
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      max-width: 60%;
+      background-color: #dcf8c6;
+      align-self: flex-start;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .system-message {
+      color: gray;
+      background-color: transparent !important;
+      font-style: italic;
+      text-align: center;
+      align-self: center;
+    }
+
+    #inputArea {
+      display: flex;
+      margin-top: 10px;
+      background: #f7f7f7;
+      padding: 10px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #sendBtn {
+      margin-left: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #users {
+      width: 200px;
+      background-color: #ffffff;
+      border-left: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      transition: background-color 0.3s, color 0.3s;
+      color: #000;
+    }
+
+    #typingStatus {
+      font-style: italic;
+      color: gray;
+      font-size: 0.9em;
+      margin-top: 4px;
+      transition: color 0.3s;
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: #ddd;
+    }
+
+    body.dark-mode #container {
+      border-color: #333;
+      background-color: #1e1e1e;
+    }
+
+    body.dark-mode #chat {
+      background-color: #1e1e1e;
+    }
+
+    body.dark-mode #messages {
+      background-color: #2c2c2c;
+      color: #eee;
+    }
+
+    body.dark-mode #messages li {
+      background-color: #075e54;
+      color: #fff;
+    }
+
+    body.dark-mode #inputArea {
+      background-color: #2c2c2c;
+    }
+
+    body.dark-mode #messageInput {
+      background-color: #3a3a3a;
+      color: #eee;
+      border-color: #555;
+    }
+
+    body.dark-mode #users {
+      background-color: #1e1e1e;
+      color: #ddd;
+      border-color: #333;
+    }
+
+    body.dark-mode #typingStatus {
+      color: #aaa;
+    }
+
+    /* Dark mode toggle button */
+    #darkModeToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #075e54;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      z-index: 1000;
+    }
+
+    #darkModeToggle:hover {
+      background: #128c7e;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">💬 BlinkChat</h2>
+
+  <button id="darkModeToggle">Dark Mode</button>
+
+  <label style="padding: 10px;">Your name: <input id="username" placeholder="Enter your name" /></label>
+
+  <div id="container">
+    <div id="chat">
+      <ul id="messages"></ul>
+      <p id="typingStatus"></p>
+      <div id="inputArea">
+        <input id="messageInput" placeholder="Message" disabled />
+        <button id="sendBtn" disabled>Send</button>
+      </div>
+    </div>
+
+    <div id="users">
+      <h4>Online Users</h4>
+      <ul id="userList"></ul>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+    let username = "";
+    const usernameInput = document.getElementById("username");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const messages = document.getElementById("messages");
+    const typingStatus = document.getElementById("typingStatus");
+    const userList = document.getElementById("userList");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+
+    usernameInput.addEventListener("change", () => {
+      username = usernameInput.value.trim();
+      if (username) {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        socket.emit("user_joined", username);
+      }
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const text = messageInput.value.trim();
+      if (text && username) {
+        const data = {
+          user: username,
+          text: text,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        socket.emit("send_message", data);
+        messageInput.value = "";
+        socket.emit("stop_typing");
+      }
+    });
+
+    messageInput.addEventListener("input", () => {
+      if (username) {
+        socket.emit("typing");
+        clearTimeout(window.typingTimeout);
+        window.typingTimeout = setTimeout(() => {
+          socket.emit("stop_typing");
+        }, 1000);
+      }
+    });
+
+    socket.on("receive_message", (data) => {
+      const li = document.createElement("li");
+      li.textContent = `[${data.timestamp}] ${data.user}: ${data.text}`;
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on("user_typing", (name) => {
+      typingStatus.textContent = `${name} is typing...`;
+    });
+
+    socket.on("user_stopped_typing", () => {
+      typingStatus.textContent = "";
+    });
+
+    socket.on("user_joined_announcement", (name) => {
+      const li = document.createElement("li");
+      li.textContent = `🔔 ${name} joined the chat`;
+      li.className = "system-message";
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on("update_user_list", (users) => {
+      userList.innerHTML = "";
+      users.forEach((u) => {
+        const li = document.createElement("li");
+        li.textContent = u;
+        userList.appendChild(li);
+      });
+    });
+
+    // Dark Mode toggle logic
+    darkModeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      darkModeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
+    });
+  </script>
+</body>
+</html>
