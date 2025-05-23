@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
 
-app.use(express.static("public")); // assuming index.html is in /public
+app.use(express.static("public")); // serve /public folder
 
 const onlineUsers = {};
 
@@ -15,16 +15,18 @@ io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
 
   socket.on("user_joined", (name) => {
-    console.log(name);
     onlineUsers[socket.id] = name;
-    console.log("User joined:", name);
-
     io.emit("user_joined_announcement", name);
     io.emit("update_user_list", Object.values(onlineUsers));
   });
 
   socket.on("send_message", (data) => {
     io.emit("receive_message", data);
+
+  });
+
+  socket.on("send_file", (data) => {
+    io.emit("receive_file", data);
   });
 
   socket.on("typing", () => {
@@ -40,8 +42,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const name = onlineUsers[socket.id];
-    console.log("User disconnected:", name);
-
     delete onlineUsers[socket.id];
     io.emit("update_user_list", Object.values(onlineUsers));
   });
