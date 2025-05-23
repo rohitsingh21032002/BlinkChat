@@ -367,12 +367,19 @@
       li.innerHTML = timestamp;
 
       if (data.file.type.startsWith("image/")) {
+        const link = document.createElement("a");
+        link.href = data.file.content;
+        link.download = data.file.name;
+        link.target = "_blank"; // Optional: open in new tab if clicked
+
         const img = document.createElement("img");
         img.src = data.file.content;
         img.alt = data.file.name;
         img.style.maxWidth = "200px";
         img.style.borderRadius = "8px";
-        li.appendChild(img);
+
+        link.appendChild(img);
+        li.appendChild(link);
       } else if (data.file.type.startsWith("audio/")) {
         const audio = document.createElement("audio");
         audio.src = data.file.content;
